@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3 uid="uid://cov4fgqxfl0gx"]
+[gd_scene load_steps=6 format=3 uid="uid://cov4fgqxfl0gx"]
 
 [ext_resource type="Script" path="res://main.gd" id="1_uj4n2"]
 
@@ -13,6 +13,10 @@ font_color = Color(0, 0, 0, 1)
 [sub_resource type="LabelSettings" id="LabelSettings_lqh5t"]
 font_size = 14
 font_color = Color(0, 0, 0, 1)
+
+[sub_resource type="LabelSettings" id="LabelSettings_rech2"]
+font_size = 30
+font_color = Color(0.388235, 0.168627, 1, 1)
 
 [node name="Main" type="Node2D"]
 position = Vector2(32, 280)
@@ -127,12 +131,20 @@ label_settings = SubResource("LabelSettings_lqh5t")
 
 [node name="TextDisplay" type="Label" parent="ReceiveText"]
 layout_mode = 0
-offset_left = 8.0
-offset_top = 40.0
-offset_right = 112.0
-offset_bottom = 63.0
+offset_left = 9.0
+offset_top = 35.0
+offset_right = 113.0
+offset_bottom = 58.0
 text = "(en attente...)"
 label_settings = SubResource("LabelSettings_lqh5t")
+
+[node name="hostMessage" type="Label" parent="ReceiveText"]
+layout_mode = 0
+offset_left = -38.0
+offset_top = 97.0
+offset_right = 145.0
+offset_bottom = 145.0
+label_settings = SubResource("LabelSettings_rech2")
 
 [connection signal="pressed" from="MainMenu/BtnHost" to="." method="_on_host_pressed"]
 [connection signal="pressed" from="MainMenu/BtnJoin" to="." method="_on_join_pressed"]

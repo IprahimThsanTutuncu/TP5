@@ -11,16 +11,18 @@ var host_morse = ""
 var client_answer = []
 var game_over = false
 
+# Load the sound files
+var dot_sound = preload("res://dot.wav")
+var boop_sound = preload("res://boop.wav")
+
 # ===== GAME LOOP =====
 func _physics_process(_delta):
-	
 	if (Input.is_action_just_pressed("ui_dot")): # fléche UP, point
-		# jouer un son à J1
+		rpc("_play_dot_on_server")
 		pass
 	elif (Input.is_action_just_pressed("ui_dash")): # fléche DOWN, trait d'union
-		# jouer un son à J1
+		rpc("_play_dash_on_server")
 		pass
-	# Note: Vous pouvez jouer le même son avec différentes durées pour le point (plus courte) et pour le trait d'union (plus longue), ou jouer des sons distincts.
 
 # ===== EVÉNEMENTS INTERFACE =====
 func _on_host_pressed():
@@ -50,8 +52,7 @@ func _on_btn_send_pressed():
 	$SendText/AnswerPreview.set_text(host_morse)
 	
 	# envoyer la message à J2
-	pass
-
+	rpc("_show_text_on_client", host_text)
 # ===== LOGIQUE DU JEU =====
 func get_morse_from_string(text: String) -> String:
 	var morse_code = {
@@ -69,29 +70,60 @@ func get_morse_from_string(text: String) -> String:
 			morse_text.append(morse_code[aChar])
 	
 	return "".join(morse_text)
-	
+
+func is_answer_equal() -> bool:
+	var client_answer_str = ""
+	for char in client_answer:
+		client_answer_str += char
+	return host_morse == client_answer_str
+
 func check_victory():
-	#  Joueur 1 vérifie si la séquence reçue jusqu'à ce point correspond au message initial.
-	pass
+	
+	if is_answer_equal():
+		game_over = true
+		rpc("_send_success_au_client")
+	else:
+		client_answer.clear()
+		rpc("_send_failure_au_client")
 
 # ===== MÉTHODES RPC =====
 @rpc("authority", "call_remote", "reliable")
 func _show_text_on_client(text):
-	# cette méthode sera appelé par J1
-	# envoyer et montrer le texte à J2
-	pass
+	print("Envoyé à J2: ", text)
+	$ReceiveText/TextDisplay.text = text
 	
 @rpc("any_peer", "call_remote", "reliable")
 func _play_dot_on_server():
-	# cette méthode sera appelé par J2
-	if (!game_over):
-		# jouer le beep à J1
-		pass
-	
+	if not game_over:
+		print("Envoyé à J1")
+		var audio_player = AudioStreamPlayer.new()
+		audio_player.stream = dot_sound
+		add_child(audio_player)
+		audio_player.play() 
+		client_answer.append(".")
+		
+	if client_answer.size() == host_morse.length():
+		check_victory()
+
 @rpc("any_peer", "call_remote", "reliable")
 func _play_dash_on_server():
-	# cette méthode sera appelé par J2
-	if (!game_over):
-		# jouer le beep à J1
-		pass
+	if not game_over:
+		print("Envoyé à J1")
+		var audio_player = AudioStreamPlayer.new()
+		audio_player.stream = boop_sound
+		add_child(audio_player)
+		audio_player.play()
+		client_answer.append("-")
+		
+	if client_answer.size() == host_morse.length():
+		check_victory()
+
+@rpc("any_peer", "call_remote", "reliable")
+func _send_success_au_client():
+	print("got Success du vot' Host")
+	$ReceiveText/hostMessage.text = "You are Success"
 	
+@rpc("any_peer", "call_remote", "reliable")
+func _send_failure_au_client():
+	print("got Failure d'votre Host")
+	$ReceiveText/hostMessage.text = "Failure désolé :((, recommence"
